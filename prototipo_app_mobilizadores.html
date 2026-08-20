@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protótipo — App Mobilizadores NFP · ABBA</title>
+<style>
+  :root{
+    color-scheme: light;
+    --surface-1:#fcfcfb;
+    --page:#f4f4f1;
+    --ink:#0b0b0b;
+    --ink-2:#52514e;
+    --muted:#898781;
+    --grid:#e1e0d9;
+    --border:rgba(11,11,11,0.10);
+    --brand:#2a78d6;
+    --brand-dark:#184f95;
+    --brand-wash:#eaf2fc;
+    --aqua:#1baf7a;
+    --aqua-wash:#e7f7f0;
+    --good:#0ca30c;
+    --warning:#fab219;
+    --serious:#ec835a;
+    --critical:#d03b3b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background:var(--page);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:920px;margin:0 auto;padding:0 16px 64px;}
+  .topbar{
+    display:flex;align-items:center;gap:12px;
+    padding:20px 0 12px;
+  }
+  .logo{
+    width:40px;height:40px;border-radius:10px;background:var(--brand);
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:15px;flex-shrink:0;
+  }
+  .topbar h1{font-size:16px;margin:0;line-height:1.3;}
+  .topbar p{margin:0;font-size:12.5px;color:var(--muted);}
+  .demo-banner{
+    background:#fff7e6;border:1px solid #f3d9a0;color:#6b5010;
+    border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:16px;
+    display:flex;gap:8px;align-items:flex-start;
+  }
+  .demo-banner button{
+    margin-left:auto;background:none;border:1px solid #d9bd7a;color:#6b5010;
+    border-radius:6px;padding:4px 9px;font-size:12px;cursor:pointer;white-space:nowrap;
+  }
+  .tabs{display:flex;gap:6px;margin-bottom:18px;background:#eeede8;padding:4px;border-radius:11px;width:fit-content;}
+  .tabs button{
+    border:none;background:transparent;padding:8px 16px;border-radius:8px;
+    font-size:13.5px;font-weight:600;color:var(--ink-2);cursor:pointer;
+  }
+  .tabs button.active{background:var(--surface-1);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,0.08);}
+
+  .card{
+    background:var(--surface-1);border:1px solid var(--border);border-radius:14px;
+    padding:20px;margin-bottom:16px;
+  }
+  .card h2{font-size:15px;margin:0 0 4px;}
+  .card .sub{font-size:12.5px;color:var(--muted);margin:0 0 16px;}
+
+  .stepper{display:flex;align-items:center;gap:4px;margin-bottom:20px;flex-wrap:wrap;}
+  .step{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+  .step .dot{width:20px;height:20px;border-radius:50%;background:var(--grid);color:var(--ink-2);
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+  .step.done .dot{background:var(--good);color:#fff;}
+  .step.current .dot{background:var(--brand);color:#fff;}
+  .step.current span.label{color:var(--ink);font-weight:600;}
+  .step-sep{width:16px;height:1px;background:var(--grid);}
+
+  label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);margin:12px 0 5px;}
+  label:first-child{margin-top:0;}
+  input[type=text], input[type=tel], input[type=email]{
+    width:100%;padding:10px 12px;border:1px solid var(--grid);border-radius:8px;
+    font-size:14px;background:#fff;color:var(--ink);
+  }
+  input:focus{outline:2px solid var(--brand);outline-offset:1px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:560px){.row2{grid-template-columns:1fr;}}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;justify-content:center;
+    background:var(--brand);color:#fff;border:none;border-radius:9px;
+    padding:11px 18px;font-size:13.5px;font-weight:600;cursor:pointer;
+  }
+  .btn:hover{background:var(--brand-dark);}
+  .btn.secondary{background:var(--surface-1);color:var(--ink);border:1px solid var(--grid);}
+  .btn.secondary:hover{background:var(--page);}
+  .btn.ghost{background:transparent;color:var(--brand);border:1px dashed var(--brand);}
+  .btn.small{padding:6px 11px;font-size:12px;border-radius:7px;}
+  .btn.good{background:var(--good);}
+  .btn.good:hover{background:#087f08;}
+  .btn.critical{background:var(--critical);}
+  .btn.critical:hover{background:#a92e2e;}
+  .btn:disabled{opacity:0.45;cursor:not-allowed;}
+  .actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+
+  .banner{border-radius:9px;padding:12px 14px;font-size:13px;display:flex;gap:9px;margin-bottom:14px;align-items:flex-start;}
+  .banner.info{background:var(--brand-wash);color:var(--brand-dark);}
+  .banner.good{background:var(--aqua-wash);color:#0a6b3f;}
+  .banner.critical{background:#fbeaea;color:#8e2323;}
+  .banner .ic{flex-shrink:0;}
+
+  .contract-box{
+    background:var(--page);border:1px solid var(--grid);border-radius:9px;
+    padding:14px;font-size:12.5px;line-height:1.6;color:var(--ink-2);
+    max-height:160px;overflow-y:auto;margin-bottom:6px;
+  }
+  .checkline{display:flex;gap:8px;align-items:flex-start;font-size:13px;margin:14px 0;color:var(--ink);}
+  .checkline input{margin-top:2px;}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+  @media (max-width:640px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+  .stat-tile{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:14px;}
+  .stat-tile .label{font-size:11.5px;color:var(--muted);margin-bottom:6px;}
+  .stat-tile .value{font-size:23px;font-weight:600;color:var(--ink);}
+  .stat-tile .value.small{font-size:18px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:0.02em;color:var(--muted);
+    font-weight:600;padding:8px 10px;border-bottom:1px solid var(--grid);}
+  td{padding:10px 10px;border-bottom:1px solid var(--grid);color:var(--ink);font-variant-numeric:tabular-nums;vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .cpf-cell{display:flex;align-items:center;gap:8px;}
+  .cpf-cell button{border:none;background:none;color:var(--muted);cursor:pointer;font-size:12px;padding:0;}
+
+  .badge{
+    display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 7px;border-radius:99px;
+    font-size:11.5px;font-weight:600;color:var(--ink);background:var(--page);border:1px solid var(--grid);
+    white-space:nowrap;
+  }
+  .badge .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .badge.pendente .dot{background:var(--warning);}
+  .badge.validado .dot{background:var(--good);}
+  .badge.duplicado .dot{background:var(--critical);}
+  .badge.rejeitado .dot{background:var(--serious);}
+  .badge.ativo .dot{background:var(--good);}
+
+  .bars{display:flex;flex-direction:column;gap:12px;}
+  .bar-row{display:grid;grid-template-columns:110px 1fr 40px;align-items:center;gap:10px;font-size:12.5px;}
+  .bar-row .lbl{display:flex;align-items:center;gap:6px;color:var(--ink-2);}
+  .bar-row .lbl .sw{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+  .bar-track{background:var(--page);border-radius:6px;height:20px;position:relative;}
+  .bar-fill{height:20px;border-radius:5px 4px 4px 5px;}
+  .bar-row .val{text-align:right;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+
+  .empty{color:var(--muted);font-size:13px;padding:14px 0;text-align:center;}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px;}
+  .hint code{background:var(--page);padding:1px 5px;border-radius:5px;font-size:11.5px;}
+  .legend-note{font-size:11.5px;color:var(--muted);margin-top:10px;display:flex;gap:14px;flex-wrap:wrap;}
+  .legend-note span{display:inline-flex;align-items:center;gap:5px;}
+  .legend-note .dot{width:7px;height:7px;border-radius:50%;}
+
+  .kv{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--grid);}
+  .kv:last-child{border-bottom:none;}
+  .kv .k{color:var(--ink-2);}
+  .kv .v{font-weight:600;font-variant-numeric:tabular-nums;}
+
+  .toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .section-title{font-size:12.5px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:0.03em;margin:26px 0 10px;}
+  .section-title:first-child{margin-top:0;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="logo">AB</div>
+    <div>
+      <h1>Mobilizadores NFP — ABBA Brasil</h1>
+      <p>Protótipo navegável do conceito de app descrito na especificação</p>
+    </div>
+  </div>
+
+  <div class="demo-banner">
+    <span>🧪</span>
+    <div>
+      <strong>Isto é um protótipo, não o app final.</strong> Serve para visualizar o conceito e testar o fluxo com dados fictícios. Nada aqui é salvo — atualizar a página reinicia tudo.
+    </div>
+    <button onclick="resetDemo()">Reiniciar demonstração</button>
+  </div>
+
+  <div class="tabs">
+    <button id="tab-mobilizador" onclick="setView('mobilizador')">📱 Visão do mobilizador</button>
+    <button id="tab-admin" onclick="setView('admin')">🖥️ Painel ABBA</button>
+  </div>
+
+  <main id="view-root"></main>
+
+</div>
+
+<script>
+/* ---------------------------------------------------------------
+   Utilidades: CPF (validação, formatação, mascaramento, geração)
+--------------------------------------------------------------- */
+function onlyDigits(s){ return (s || '').replace(/\D/g,''); }
+
+function calcCheckDigit(digitsArr){
+  let sum = 0, weight = digitsArr.length + 1;
+  for (const d of digitsArr){ sum += d * weight; weight--; }
+  const rest = sum % 11;
+  return rest < 2 ? 0 : 11 - rest;
+}
+
+function makeCPF(base9){
+  const digits = base9.split('').map(Number);
+  const d1 = calcCheckDigit(digits);
+  const d2 = calcCheckDigit([...digits, d1]);
+  return base9 + String(d1) + String(d2);
+}
+
+function validateCPF(raw){
+  const digits = onlyDigits(raw);
+  if (digits.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(digits)) return false;
+  const base9 = digits.slice(0,9).split('').map(Number);
+  const d1 = calcCheckDigit(base9);
+  const d2 = calcCheckDigit([...base9, d1]);
+  return digits[9] === String(d1) && digits[10] === String(d2);
+}
+
+function formatCPF(raw){
+  const d = onlyDigits(raw);
+  if (d.length !== 11) return raw;
+  return d.slice(0,3) + '.' + d.slice(3,6) + '.' + d.slice(6,9) + '-' + d.slice(9,11);
+}
+
+function maskCPF(raw){
+  const d = onlyDigits(raw);
+  if (d.length !== 11) return raw;
+  return d.slice(0,3) + '.•••.•••-' + d.slice(9,11);
+}
+
+function randomTestCPF(){
+  let base = '';
+  for (let i=0;i<9;i++) base += Math.floor(Math.random()*10);
+  return formatCPF(makeCPF(base));
+}
+
+function fmtDate(iso){
+  const [y,m,d] = iso.split('-');
+  return d + '/' + m + '/' + y;
+}
+
+let idCounter = 1000;
+function nextId(){ return 'id' + (idCounter++); }
+
+/* ---------------------------------------------------------------
+   Estado (simula o backend — tudo em memória, some ao recarregar)
+--------------------------------------------------------------- */
+function seedState(){
+  const cpfMarcos1 = makeCPF('111444777');
+  const cpfMarcos2 = makeCPF('222555888');
+  const cpfJuliana1 = makeCPF('333666999');
+  const cpfJuliana2 = makeCPF('444777000');
+
+  return {
+    currentView: 'mobilizador',
+    valorPorCpfValidado: 25,
+
+    mobilizador: {
+      step: 'cadastro', // cadastro -> pendente -> contrato -> dashboard
+      nome:'', cpf:'', telefone:'', email:'', cidade:'',
+      status: 'nenhum', // nenhum -> pendente -> ativo
+      contratoAssinado: false
+    },
+
+    mobilizadoresAtivos: [
+      { id:'m1', nome:'Marcos Silva', cidade:'São Paulo - SP', desde:'2026-04-02' },
+      { id:'m2', nome:'Juliana Souza', cidade:'Campinas - SP', desde:'2026-05-15' }
+    ],
+
+    cadastrosPendentes: [],
+
+    capturas: [
+      { id:nextId(), cpf:cpfMarcos1, mobilizador:'Marcos Silva', data:'2026-05-12', status:'validado', ciclo:'2026' },
+      { id:nextId(), cpf:cpfMarcos2, mobilizador:'Marcos Silva', data:'2026-06-02', status:'validado', ciclo:'2026' },
+      { id:nextId(), cpf:cpfJuliana1, mobilizador:'Juliana Souza', data:'2026-07-20', status:'pendente', ciclo:'2026' },
+      { id:nextId(), cpf:cpfJuliana2, mobilizador:'Juliana Souza', data:'2026-07-25', status:'validado', ciclo:'2026' }
+    ],
+
+    duplicadosDetectados: [],
+    duplicataCpfParaTeste: cpfMarcos1,
+    captureFeedback: null,
+    novoCpfInputValue: ''
+  };
+}
+
+let state = seedState();
+
+function resetDemo(){
+  state = seedState();
+  render();
+}
+
+/* ---------------------------------------------------------------
+   Navegação
+--------------------------------------------------------------- */
+function setView(view){
+  state.currentView = view;
+  render();
+}
+
+/* ---------------------------------------------------------------
+   Fluxo do mobilizador
+--------------------------------------------------------------- */
+function submitCadastro(ev){
+  ev.preventDefault();
+  const nome = document.getElementById('f-nome').value.trim();
+  const cpf = document.getElementById('f-cpf').value.trim();
+  const telefone = document.getElementById('f-telefone').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const cidade = document.getElementById('f-cidade').value.trim();
+
+  if (!nome || !cidade){ alert('Preencha ao menos nome e cidade.'); return; }
+  if (cpf && !validateCPF(cpf)){ alert('Este CPF não é válido (dígito verificador não confere).'); return; }
+
+  state.mobilizador = { ...state.mobilizador, nome, cpf, telefone, email, cidade, step:'pendente', status:'pendente' };
+
+  state.cadastrosPendentes.push({
+    id: 'pend-voce',
+    nome, cpf, telefone, email, cidade,
+    data: '2026-08-20'
+  });
+
+  render();
+}
+
+function simularAprovacao(){
+  aprovarCadastro('pend-voce', true);
+}
+
+function aprovarCadastro(id, viaSimulacao){
+  const idx = state.cadastrosPendentes.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  const c = state.cadastrosPendentes[idx];
+  state.cadastrosPendentes.splice(idx,1);
+
+  if (id === 'pend-voce'){
+    state.mobilizador.status = 'ativo';
+    state.mobilizador.step = 'contrato';
+  } else {
+    state.mobilizadoresAtivos.push({ id:nextId(), nome:c.nome, cidade:c.cidade, desde:'2026-08-20' });
+  }
+  render();
+}
+
+function rejeitarCadastro(id){
+  state.cadastrosPendentes = state.cadastrosPendentes.filter(c => c.id !== id);
+  if (id === 'pend-voce'){
+    state.mobilizador.status = 'nenhum';
+    state.mobilizador.step = 'cadastro';
+  }
+  render();
+}
+
+function assinarContrato(ev){
+  ev.preventDefault();
+  const aceite = document.getElementById('f-aceite').checked;
+  const nomeAssinatura = document.getElementById('f-assinatura').value.trim();
+  if (!aceite){ alert('É preciso marcar que você leu e concorda com o contrato.'); return; }
+  if (!nomeAssinatura || nomeAssinatura.length < 5){ alert('Digite seu nome completo para assinar.'); return; }
+
+  state.mobilizador.contratoAssinado = true;
+  state.mobilizador.step = 'dashboard';
+  render();
+}
+
+function preencherCpfDuplicado(){
+  document.getElementById('f-novo-cpf').value = formatCPF(state.duplicataCpfParaTeste);
+}
+function preencherCpfNovo(){
+  document.getElementById('f-novo-cpf').value = randomTestCPF();
+}
+
+function registrarCaptura(ev){
+  ev.preventDefault();
+  const input = document.getElementById('f-novo-cpf');
+  const raw = input.value.trim();
+
+  if (!validateCPF(raw)){
+    state.captureFeedback = { kind:'critical', icon:'⚠️', text:'CPF inválido — o dígito verificador não confere. Confira os números digitados.' };
+    state.novoCpfInputValue = raw;
+    render();
+    return;
+  }
+  state.novoCpfInputValue = '';
+
+  const digits = onlyDigits(raw);
+  const existente = state.capturas.find(c => onlyDigits(c.cpf) === digits);
+
+  if (existente){
+    const porVoce = existente.mobilizador === state.mobilizador.nome;
+    state.duplicadosDetectados.unshift({
+      id:nextId(), cpf:digits, tentativaPor: state.mobilizador.nome || 'Você',
+      dataTentativa:'2026-08-20', jaCapturadoPor: existente.mobilizador, dataOriginal: existente.data
+    });
+    state.captureFeedback = { kind:'critical', icon:'⛔', text:
+      'Este CPF já foi captado ' + (porVoce ? 'por você' : 'por <strong>' + existente.mobilizador + '</strong>') +
+      ' em ' + fmtDate(existente.data) + '. O registro não pode ser duplicado — nenhuma nova comissão é gerada para esta captação.' };
+    render();
+    return;
+  }
+
+  state.capturas.push({
+    id: nextId(), cpf: digits, mobilizador: state.mobilizador.nome || 'Você',
+    data:'2026-08-20', status:'pendente', ciclo:'2026'
+  });
+  state.captureFeedback = { kind:'good', icon:'✅', text:'CPF novo registrado com sucesso. Ele aparece agora como "pendente" até a equipe ABBA validar o cadastro na Sefaz.' };
+  render();
+}
+
+function validarCaptura(id, novoStatus){
+  const c = state.capturas.find(c => c.id === id);
+  if (!c) return;
+  c.status = novoStatus;
+  render();
+}
+
+function bannerHtml(kind, icon, text){
+  return '<div class="banner ' + kind + '"><span class="ic">' + icon + '</span><span>' + text + '</span></div>';
+}
+
+/* ---------------------------------------------------------------
+   Render
+--------------------------------------------------------------- */
+function render(){
+  document.getElementById('tab-mobilizador').classList.toggle('active', state.currentView === 'mobilizador');
+  document.getElementById('tab-admin').classList.toggle('active', state.currentView === 'admin');
+  const root = document.getElementById('view-root');
+  root.innerHTML = state.currentView === 'mobilizador' ? renderMobilizador() : renderAdmin();
+}
+
+function stepperHtml(current){
+  const steps = [
+    {key:'cadastro', label:'Cadastro'},
+    {key:'pendente', label:'Aprovação'},
+    {key:'contrato', label:'Contrato'},
+    {key:'dashboard', label:'Captação'}
+  ];
+  const order = steps.map(s=>s.key);
+  const currentIdx = order.indexOf(current);
+  return '<div class="stepper">' + steps.map((s,i) => {
+    const cls = i < currentIdx ? 'done' : (i === currentIdx ? 'current' : '');
+    const dotContent = i < currentIdx ? '✓' : (i+1);
+    const sep = i < steps.length -1 ? '<div class="step-sep"></div>' : '';
+    return '<div class="step ' + cls + '"><div class="dot">' + dotContent + '</div><span class="label">' + s.label + '</span></div>' + sep;
+  }).join('') + '</div>';
+}
+
+function renderMobilizador(){
+  const m = state.mobilizador;
+
+  if (m.step === 'cadastro'){
+    return stepperHtml('cadastro') + `
+      <div class="card">
+        <h2>Criar conta de mobilizador</h2>
+        <p class="sub">Esses são os dados mínimos para a equipe ABBA identificar e aprovar seu cadastro.</p>
+        <form onsubmit="submitCadastro(event)">
+          <label for="f-nome">Nome completo</label>
+          <input type="text" id="f-nome" placeholder="Ex: Ana Paula Ferreira">
+
+          <div class="row2">
+            <div>
+              <label for="f-cpf">Seu CPF</label>
+              <input type="text" id="f-cpf" placeholder="000.000.000-00">
+            </div>
+            <div>
+              <label for="f-telefone">Telefone</label>
+              <input type="tel" id="f-telefone" placeholder="(11) 90000-0000">
+            </div>
+          </div>
+
+          <div class="row2">
+            <div>
+              <label for="f-email">E-mail</label>
+              <input type="email" id="f-email" placeholder="voce@email.com">
+            </div>
+            <div>
+              <label for="f-cidade">Cidade / região de atuação</label>
+              <input type="text" id="f-cidade" placeholder="Ex: São Paulo - SP">
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn">Criar conta</button>
+          </div>
+        </form>
+        <p class="hint">No app real, isso incluiria também o aceite dos termos de uso e da política de privacidade — importante porque, mais adiante, você vai lidar com dados pessoais de terceiros (os CPFs captados).</p>
+      </div>`;
+  }
+
+  if (m.step === 'pendente'){
+    return stepperHtml('pendente') + `
+      <div class="card">
+        <h2>Cadastro em análise</h2>
+        ${bannerHtml('info','⏳', 'Olá, ' + (m.nome || 'mobilizador') + '! Seu cadastro foi enviado e está esperando aprovação da equipe ABBA — no protótipo, isso aparece na aba <strong>Painel ABBA → Cadastros pendentes</strong>.')}
+        <p class="sub" style="margin-top:14px;">Você pode ir até a aba "Painel ABBA" e aprovar seu próprio cadastro para ver a conexão entre as duas telas, ou usar o atalho abaixo.</p>
+        <div class="actions">
+          <button class="btn ghost" onclick="simularAprovacao()">🔧 Simular aprovação agora (atalho de demonstração)</button>
+        </div>
+      </div>`;
+  }
+
+  if (m.step === 'contrato'){
+    return stepperHtml('contrato') + `
+      <div class="card">
+        <h2>Contrato de mobilizador</h2>
+        <p class="sub">Cadastro aprovado! Antes de captar qualquer CPF, é preciso ler e assinar o contrato.</p>
+        <div class="contract-box">
+          <strong>CONTRATO DE PARCERIA — PROGRAMA NOTA FISCAL PAULISTA (texto ilustrativo)</strong><br><br>
+          Pelo presente instrumento, a ABBA Brasil e ${m.nome || '[mobilizador]'} estabelecem parceria para
+          divulgação e captação de CPFs junto ao programa Nota Fiscal Paulista, mediante repasse de comissão
+          por CPF validado, nos termos e valores definidos pela ABBA para o ciclo vigente. O mobilizador declara
+          estar de acordo com o tratamento dos dados pessoais coletados exclusivamente para essa finalidade,
+          conforme a Lei Geral de Proteção de Dados. O presente texto é ilustrativo, apenas para fins deste protótipo.
+        </div>
+        <div class="checkline">
+          <input type="checkbox" id="f-aceite">
+          <label style="margin:0;font-weight:400;color:var(--ink);" for="f-aceite">Li e concordo com os termos do contrato acima.</label>
+        </div>
+        <label for="f-assinatura">Digite seu nome completo para assinar</label>
+        <input type="text" id="f-assinatura" placeholder="${m.nome || 'Seu nome completo'}">
+        <div class="actions">
+          <button class="btn" onclick="assinarContrato(event)">Assinar contrato</button>
+        </div>
+        <p class="hint">No app real, essa etapa provavelmente usaria um serviço de assinatura eletrônica (ex: Clicksign, D4Sign, ZapSign) ou gravaria data/hora/IP como trilha de auditoria — vale confirmar com um advogado qual formato é adequado.</p>
+      </div>`;
+  }
+
+  // dashboard
+  const minhas = state.capturas.filter(c => c.mobilizador === (m.nome || 'Você'));
+  const validados = minhas.filter(c=>c.status==='validado').length;
+  const pendentes = minhas.filter(c=>c.status==='pendente').length;
+  const duplicados = minhas.filter(c=>c.status==='duplicado').length;
+  const aReceber = validados * state.valorPorCpfValidado;
+
+  return `
+    <div class="card" style="background:linear-gradient(135deg,var(--brand-wash),var(--surface-1));">
+      <h2>Olá, ${m.nome || 'mobilizador'} 👋</h2>
+      <p class="sub">Contrato assinado · ${m.cidade || 'região não informada'} · ciclo 2026</p>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-tile"><div class="label">CPFs captados</div><div class="value">${minhas.length}</div></div>
+      <div class="stat-tile"><div class="label">Validados</div><div class="value">${validados}</div></div>
+      <div class="stat-tile"><div class="label">Pendentes</div><div class="value">${pendentes}</div></div>
+      <div class="stat-tile"><div class="label">A receber (ilustrativo)</div><div class="value small">R$ ${aReceber.toFixed(2).replace('.',',')}</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Registrar novo CPF captado</h2>
+      <p class="sub">O sistema valida o formato e verifica automaticamente se esse CPF já foi captado antes de aceitar o registro.</p>
+      <form onsubmit="registrarCaptura(event)">
+        <label for="f-novo-cpf">CPF captado</label>
+        <input type="text" id="f-novo-cpf" placeholder="000.000.000-00" value="${state.novoCpfInputValue || ''}">
+        <div class="actions">
+          <button type="submit" class="btn">Verificar e registrar</button>
+          <button type="button" class="btn secondary small" onclick="preencherCpfNovo()">🧪 Preencher CPF novo (teste)</button>
+          <button type="button" class="btn secondary small" onclick="preencherCpfDuplicado()">🧪 Preencher CPF já existente (teste de duplicidade)</button>
+        </div>
+      </form>
+      <div id="captura-resultado" style="margin-top:12px;">${state.captureFeedback ? bannerHtml(state.captureFeedback.kind, state.captureFeedback.icon, state.captureFeedback.text) : ''}</div>
+    </div>
+
+    <div class="card">
+      <h2>Meus CPFs captados</h2>
+      ${minhas.length === 0 ? '<div class="empty">Nenhum CPF registrado ainda.</div>' : `
+      <table>
+        <thead><tr><th>CPF</th><th>Data</th><th>Ciclo</th><th>Status</th></tr></thead>
+        <tbody>
+          ${minhas.slice().reverse().map(c => `
+            <tr>
+              <td><div class="cpf-cell"><span id="cpf-${c.id}">${maskCPF(c.cpf)}</span>
+                <button onclick="toggleCpf('${c.id}','${c.cpf}')" title="mostrar/ocultar">👁</button></div></td>
+              <td>${fmtDate(c.data)}</td>
+              <td>${c.ciclo}</td>
+              <td>${badgeHtml(c.status)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`}
+    </div>
+  `;
+}
+
+function toggleCpf(id, cpf){
+  const el = document.getElementById('cpf-' + id);
+  const isMasked = el.textContent.includes('•');
+  el.textContent = isMasked ? formatCPF(cpf) : maskCPF(cpf);
+}
+
+function badgeHtml(status){
+  const labels = { pendente:'Pendente', validado:'Validado', duplicado:'Duplicado', rejeitado:'Rejeitado' };
+  return '<span class="badge ' + status + '"><span class="dot"></span>' + (labels[status]||status) + '</span>';
+}
+
+/* ---------------------------------------------------------------
+   Painel ABBA (admin)
+--------------------------------------------------------------- */
+function renderAdmin(){
+  const totalAtivos = state.mobilizadoresAtivos.length;
+  const pendAprov = state.cadastrosPendentes.length;
+  const todas = state.capturas;
+  const porStatus = {
+    pendente: todas.filter(c=>c.status==='pendente').length,
+    validado: todas.filter(c=>c.status==='validado').length,
+    duplicado: todas.filter(c=>c.status==='duplicado').length,
+    rejeitado: todas.filter(c=>c.status==='rejeitado').length
+  };
+  const totalRepasse = porStatus.validado * state.valorPorCpfValidado;
+  const maxBar = Math.max(1, ...Object.values(porStatus));
+
+  const barDef = [
+    {key:'pendente', label:'Pendente', color:'var(--warning)'},
+    {key:'validado', label:'Validado', color:'var(--good)'},
+    {key:'duplicado', label:'Duplicado', color:'var(--critical)'},
+    {key:'rejeitado', label:'Rejeitado', color:'var(--serious)'}
+  ];
+
+  return `
+    <div class="stat-grid">
+      <div class="stat-tile"><div class="label">Mobilizadores ativos</div><div class="value">${totalAtivos}</div></div>
+      <div class="stat-tile"><div class="label">Cadastros pendentes</div><div class="value">${pendAprov}</div></div>
+      <div class="stat-tile"><div class="label">CPFs pendentes de validação</div><div class="value">${porStatus.pendente}</div></div>
+      <div class="stat-tile"><div class="label">Total a repassar (ilustrativo)</div><div class="value small">R$ ${totalRepasse.toFixed(2).replace('.',',')}</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Captações por status</h2>
+      <p class="sub">Todos os mobilizadores, ciclo 2026</p>
+      <div class="bars">
+        ${barDef.map(b => `
+          <div class="bar-row">
+            <div class="lbl"><span class="sw" style="background:${b.color};"></span>${b.label}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${(porStatus[b.key]/maxBar*100).toFixed(0)}%;background:${b.color};"></div></div>
+            <div class="val">${porStatus[b.key]}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="section-title">Cadastros de mobilizador pendentes de aprovação</div>
+    <div class="card">
+      ${state.cadastrosPendentes.length === 0 ? '<div class="empty">Nenhum cadastro pendente.</div>' : `
+      <table>
+        <thead><tr><th>Nome</th><th>Cidade</th><th>Contato</th><th></th></tr></thead>
+        <tbody>
+          ${state.cadastrosPendentes.map(c => `
+            <tr>
+              <td>${c.nome}${c.id==='pend-voce' ? ' <span class="hint">(você, na aba mobilizador)</span>' : ''}</td>
+              <td>${c.cidade}</td>
+              <td>${c.telefone || c.email || '—'}</td>
+              <td style="text-align:right;">
+                <button class="btn good small" onclick="aprovarCadastro('${c.id}')">Aprovar</button>
+                <button class="btn critical small" onclick="rejeitarCadastro('${c.id}')">Rejeitar</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`}
+    </div>
+
+    <div class="section-title">CPFs pendentes de validação</div>
+    <div class="card">
+      ${todas.filter(c=>c.status==='pendente').length === 0 ? '<div class="empty">Nenhuma captação pendente.</div>' : `
+      <table>
+        <thead><tr><th>CPF</th><th>Mobilizador</th><th>Data</th><th></th></tr></thead>
+        <tbody>
+          ${todas.filter(c=>c.status==='pendente').map(c => `
+            <tr>
+              <td>${formatCPF(c.cpf)}</td>
+              <td>${c.mobilizador}</td>
+              <td>${fmtDate(c.data)}</td>
+              <td style="text-align:right;">
+                <button class="btn good small" onclick="validarCaptura('${c.id}','validado')">Validar</button>
+                <button class="btn critical small" onclick="validarCaptura('${c.id}','rejeitado')">Rejeitar</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`}
+    </div>
+
+    <div class="section-title">Duplicidades detectadas automaticamente</div>
+    <div class="card">
+      ${state.duplicadosDetectados.length === 0 ? '<div class="empty">Nenhuma tentativa de duplicidade registrada nesta sessão — vá até a aba "Visão do mobilizador" e tente registrar um CPF já existente para ver aqui.</div>' : `
+      <table>
+        <thead><tr><th>CPF</th><th>Tentativa por</th><th>Já captado por</th><th>Data original</th></tr></thead>
+        <tbody>
+          ${state.duplicadosDetectados.map(d => `
+            <tr>
+              <td>${formatCPF(d.cpf)}</td>
+              <td>${d.tentativaPor}</td>
+              <td>${d.jaCapturadoPor}</td>
+              <td>${fmtDate(d.dataOriginal)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`}
+    </div>
+
+    <div class="section-title">Mobilizadores ativos</div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Nome</th><th>Região</th><th>Ativo desde</th><th>Status</th></tr></thead>
+        <tbody>
+          ${state.mobilizadoresAtivos.map(m => `
+            <tr><td>${m.nome}</td><td>${m.cidade}</td><td>${fmtDate(m.desde)}</td><td><span class="badge ativo"><span class="dot"></span>Ativo</span></td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+render();
+</script>
+</body>
+</html>
